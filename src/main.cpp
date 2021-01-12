@@ -33,9 +33,7 @@ static bpo::variables_map parse_options(int argc, char** argv) {
   }
   bpo::options_description description("fioras command line options");
 
-  description.add_options()
-      ("help,h", "print usage")
-      ("command", bpo::value<std::string>(), subs.c_str());
+  description.add_options()("help,h", "print usage")("command", bpo::value<std::string>(), subs.c_str());
 
   bpo::positional_options_description pos;
   pos.add("command", 1);
@@ -74,7 +72,7 @@ static bpo::variables_map parse_options(int argc, char** argv) {
   return vm;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   bpo::variables_map commandline_map = parse_options(argc, argv);
   int rc = 0;
 
@@ -84,7 +82,7 @@ int main(int argc, char **argv) {
     if (cmd_to_run == commands.end()) {
       throw bpo::invalid_option_value("Unsupported command: " + cmd);
     }
-   rc = (*cmd_to_run).second(commandline_map);
+    rc = (*cmd_to_run).second(commandline_map);
   } catch (const std::exception& ex) {
     std::cerr << ex.what();
     rc = EXIT_FAILURE;

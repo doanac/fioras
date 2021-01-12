@@ -20,7 +20,17 @@ find_package(PkgConfig REQUIRED)
 # Use C++11, but without GNU or other extensions
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(fioras src/main.cpp)
+add_executable(fioras src/main.cpp src/check_systemd.cpp)
 target_include_directories(fioras PRIVATE ${GLIB_INCLUDE_DIRS})
 target_link_libraries(fioras ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GLIB_LDFLAGS})
 install(TARGETS fioras RUNTIME DESTINATION bin)
+
+add_custom_target(clang-check-format
+	${CMAKE_SOURCE_DIR}/tools/run-clang-format --clang-format-executable=clang-format-6.0 ${CMAKE_SOURCE_DIR}/src/*
+)
+add_custom_target(clang-format
+	${CMAKE_SOURCE_DIR}/tools/run-clang-format -i --clang-format-executable=clang-format-6.0 ${CMAKE_SOURCE_DIR}/src/*
+)
+add_custom_target(clang-tidy
+	${CMAKE_SOURCE_DIR}/tools/run-clang-tidy ${CMAKE_SOURCE_DIR}/src
+)
