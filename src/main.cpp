@@ -13,6 +13,21 @@ static int version_main(const bpo::variables_map& variables_map) {
 }
 
 static int checks_main(const bpo::variables_map& variables_map) {
+  if (variables_map.count("check-name") != 0) {
+    std::string name = variables_map["check-name"].as<std::string>();
+    for (const auto& it : checks_list()) {
+      if (name == std::get<0>(it)) {
+        auto sts = std::get<1>(it)->run();
+        std::cout << "Name:  " << name << "\n";
+        std::cout << "Status:" << sts.valueString() << " " << sts.summary << "\n";
+        std::cout << "Logs:\n";
+        std::cout << std::get<1>(it)->getLog();
+        return 0;
+      }
+    }
+    std::cerr << "check(" << name << ") not found\n";
+    return 1;
+  }
   for (const auto& it : checks_list()) {
     std::cout << std::get<0>(it) << ":\t";
     auto sts = std::get<1>(it)->run();
@@ -46,7 +61,9 @@ static bpo::variables_map parse_options(int argc, char** argv) {
   }
   bpo::options_description description("fioras command line options");
 
-  description.add_options()("help,h", "print usage")("command", bpo::value<std::string>(), subs.c_str());
+  description.add_options()("help,h", "print usage")("check-name,c", bpo::value<std::string>(),
+                                                     "Run a specific check.")("command", bpo::value<std::string>(),
+                                                                              subs.c_str());
 
   bpo::positional_options_description pos;
   pos.add("command", 1);

@@ -1,4 +1,7 @@
 #include <gio/gio.h>
+#include <systemd/sd-journal.h>
+#include <deque>
+#include <sstream>
 #include <string>
 
 #include "check.h"
@@ -88,4 +91,37 @@ Status SystemDCheck::run() const {
   }
 }
 
-std::string SystemDCheck::getLog() const { return "TODO"; }
+std::string SystemDCheck::getLog() const {
+  sd_journal *j;
+  int rc = sd_journal_open(&j, SD_JOURNAL_LOCAL_ONLY);
+  if (rc < 0) {
+    std::string msg("Unable to open journal");
+    msg += strerror(-rc);
+    throw std::runtime_error(msg);
+  }
+  std::string match("_SYSTEMD_UNIT=");
+  match += svc_;
+  sd_journal_add_match(j, match.c_str(), 0);
+  std::deque<std::string> lines;
+  SD_JOURNAL_FOREACH_BACKWARDS(j) {
+    const char *d;
+    size_t l;
+
+    rc = sd_journal_get_data(j, "MESSAGE", (const void **)&d, &l);
+    if (rc < 0) {
+      fprintf(stderr, "Failed to read message field: %s\n", strerror(-rc));
+      continue;
+    }
+    lines.emplace_front(d, l);
+    if (lines.size() >= 20) {
+      break;
+    }
+  }
+  sd_journal_close(j);
+  std::stringstream ss;
+  for (const auto &line : lines) {
+    ss << line << "\n";
+  }
+
+  return ss.str();
+}
