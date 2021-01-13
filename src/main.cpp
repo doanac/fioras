@@ -3,6 +3,8 @@
 
 #include <boost/program_options.hpp>
 
+#include "check.h"
+
 namespace bpo = boost::program_options;
 
 static int version_main(const bpo::variables_map& variables_map) {
@@ -10,8 +12,19 @@ static int version_main(const bpo::variables_map& variables_map) {
   return 0;
 }
 
+static int checks_main(const bpo::variables_map& variables_map) {
+  for (const auto& it : checks_list()) {
+    std::cout << std::get<0>(it) << ":\t";
+    auto sts = std::get<1>(it)->run();
+    std::cout << sts.valueString() << "\t";
+    std::cout << sts.summary << "\n";
+  }
+  return 0;
+}
+
 static const std::unordered_map<std::string, int (*)(const bpo::variables_map&)> commands = {
     {"version", version_main},
+    {"run-checks", checks_main},
 };
 
 static void check_info_options(const bpo::options_description& description, const bpo::variables_map& vm) {
