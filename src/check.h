@@ -46,4 +46,14 @@ class SystemDCheck : public CheckInterface {
   std::string svc_;
 };
 
+class ComposeCheck : public CheckInterface {
+ public:
+  ComposeCheck(const std::string& service_name);
+  std::string getLog() const override;
+  Status run() const override;
+
+ private:
+  std::string svc_;
+};
+
 std::vector<std::tuple<std::string, std::unique_ptr<CheckInterface>>> checks_list();
