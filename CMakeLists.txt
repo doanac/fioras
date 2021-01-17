@@ -24,9 +24,9 @@ pkg_search_module(SYSTEMD REQUIRED libsystemd)
 # Use C++11, but without GNU or other extensions
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(fioras src/main.cpp src/checks.cpp src/check_systemd.cpp src/check_compose.cpp)
+add_executable(fioras src/main.cpp src/checks.cpp src/check_systemd.cpp src/check_compose.cpp src/httpd.cpp)
 target_include_directories(fioras PRIVATE ${CMAKE_SOURCE_DIR}/third_party ${GLIB_INCLUDE_DIRS} ${GIO_INCLUDE_DIRS} ${SYSTEMD_INCLUDE_DIRS})
-target_link_libraries(fioras ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GLIB_LDFLAGS} ${GIO_LDFLAGS} ${SYSTEMD_LDFLAGS})
+target_link_libraries(fioras -lpthread ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${GLIB_LDFLAGS} ${GIO_LDFLAGS} ${SYSTEMD_LDFLAGS})
 install(TARGETS fioras RUNTIME DESTINATION bin)
 
 add_custom_target(clang-check-format

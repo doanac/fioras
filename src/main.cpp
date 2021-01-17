@@ -4,6 +4,7 @@
 #include <boost/program_options.hpp>
 
 #include "check.h"
+#include "httpd.h"
 
 namespace bpo = boost::program_options;
 
@@ -37,9 +38,15 @@ static int checks_main(const bpo::variables_map& variables_map) {
   return 0;
 }
 
+static int server_main(const bpo::variables_map& variables_map) {
+  int port = variables_map["port"].as<int>();
+  return httpd_main(port);
+}
+
 static const std::unordered_map<std::string, int (*)(const bpo::variables_map&)> commands = {
     {"version", version_main},
     {"run-checks", checks_main},
+    {"run-server", server_main},
 };
 
 static void check_info_options(const bpo::options_description& description, const bpo::variables_map& vm) {
@@ -61,9 +68,14 @@ static bpo::variables_map parse_options(int argc, char** argv) {
   }
   bpo::options_description description("fioras command line options");
 
-  description.add_options()("help,h", "print usage")("check-name,c", bpo::value<std::string>(),
-                                                     "Run a specific check.")("command", bpo::value<std::string>(),
-                                                                              subs.c_str());
+  // clang-format off
+  description.add_options()
+    ("help,h", "print usage")
+    ("check-name,c", bpo::value<std::string>(), "Run a specific check.")
+    ("port,p", bpo::value<int>()->default_value(80), "Bind httpd server to this port")
+    ("command", bpo::value<std::string>(), subs.c_str()
+  );
+  // clang-format on
 
   bpo::positional_options_description pos;
   pos.add("command", 1);
