@@ -8,6 +8,44 @@
 
 using json = nlohmann::json;
 
+const std::string indexTmpl = R"~~~~(
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fiodash</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+  </head>
+  <body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">
+        Checks Overview
+      </h1>
+      <p class="subtitle">
+        High level view of device status.
+      </p>
+      <table class="table">
+       <thead>
+         <tr><th>Check</th><th>Status</th><th>Summary</th></tr>
+       </thead>
+       <tbody>
+## for check in checks
+         <tr>
+           <td><a href="checks/{{ check.name }}">{{ check.name }}</a></td>
+           <td {{ check.val_style}}>{{ check.val }}</td>
+           <td>{{ check.summary }}</td>
+         </tr>
+## endfor
+       </tbody>
+     </table>
+    </div>
+  </section>
+  </body>
+</html>
+)~~~~";
+
 const std::string detailsTmpl = R"~~~~(
 <!DOCTYPE html>
 <html>
@@ -41,14 +79,23 @@ const std::string detailsTmpl = R"~~~~(
 )~~~~";
 
 static void show_checks(httplib::Response &res) {
-  std::stringstream ss;
+  json data;
+  data["checks"] = {};
   for (const auto &it : checks_list()) {
-    ss << std::get<0>(it) << ":\t";
     auto sts = std::get<1>(it)->run();
-    ss << sts.valueString() << "\t";
-    ss << sts.summary << "\n";
+    const char *val_style = "";
+    if (sts.value != StatusVal::OK) {
+      val_style = "class=\"is-danger\"";
+    }
+    json check = {
+        {"name", std::get<0>(it)},
+        {"val_style", val_style},
+        {"val", sts.valueString()},
+        {"summary", sts.summary},
+    };
+    data["checks"].emplace_back(check);
   }
-  res.set_content(ss.str(), "text/plain");
+  res.set_content(inja::render(indexTmpl, data), "text/html");
 }
 
 static void show_check(const std::string &name, httplib::Response &res) {
