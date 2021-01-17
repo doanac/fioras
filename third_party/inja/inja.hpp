@@ -3,7 +3,7 @@
 #ifndef INCLUDE_INJA_INJA_HPP_
 #define INCLUDE_INJA_INJA_HPP_
 
-#include <nlohmann/json.hpp>
+#include <inja/nlohmann/json.hpp>
 
 // #include "environment.hpp"
 // Copyright (c) 2019 Pantor. All rights reserved.
@@ -17,7 +17,7 @@
 #include <sstream>
 #include <string>
 
-#include <nlohmann/json.hpp>
+#include <inja/nlohmann/json.hpp>
 
 // #include "config.hpp"
 // Copyright (c) 2019 Pantor. All rights reserved.
@@ -1790,7 +1790,7 @@ struct Token {
     Unknown,
     Eof,
   };
-  
+
   Kind kind {Kind::Unknown};
   nonstd::string_view text;
 
@@ -2306,7 +2306,7 @@ public:
 #include <string>
 #include <utility>
 
-#include <nlohmann/json.hpp>
+#include <inja/nlohmann/json.hpp>
 
 // #include "function_storage.hpp"
 
@@ -2746,7 +2746,7 @@ using TemplateStorage = std::map<std::string, Template>;
 // #include "utils.hpp"
 
 
-#include <nlohmann/json.hpp>
+#include <inja/nlohmann/json.hpp>
 
 namespace inja {
 
@@ -2873,7 +2873,7 @@ class Parser {
         // Functions
         } else if (peek_tok.kind == Token::Kind::LeftParen) {
           operator_stack.emplace(std::make_shared<FunctionNode>(static_cast<std::string>(tok.text), tok.text.data() - tmpl.content.c_str()));
-          function_stack.emplace(operator_stack.top().get(), current_paren_level);       
+          function_stack.emplace(operator_stack.top().get(), current_paren_level);
 
         // Variables
         } else {
@@ -3320,7 +3320,7 @@ public:
 #include <utility>
 #include <vector>
 
-#include <nlohmann/json.hpp>
+#include <inja/nlohmann/json.hpp>
 
 // #include "config.hpp"
 
@@ -3471,10 +3471,10 @@ class Renderer : public NodeVisitor  {
   void visit(const JsonNode& node) {
     if (json_additional_data.contains(node.ptr)) {
       json_eval_stack.push(&(json_additional_data[node.ptr]));
-    
+
     } else if (json_input->contains(node.ptr)) {
       json_eval_stack.push(&(*json_input)[node.ptr]);
-    
+
     } else {
       // Try to evaluate as a no-argument callback
       auto function_data = function_storage.find_function(node.name, 0);
