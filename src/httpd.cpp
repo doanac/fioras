@@ -28,13 +28,20 @@ const std::string indexTmpl = R"~~~~(
       </p>
       <table class="table">
        <thead>
-         <tr><th>Check</th><th>Status</th><th>Summary</th></tr>
+         <tr><th>Check</th><th>Status</th><th>Links</th><th>Summary</th></tr>
        </thead>
        <tbody>
 ## for check in checks
          <tr>
            <td><a href="checks/{{ check.name }}">{{ check.name }}</a></td>
            <td {{ check.val_style}}>{{ check.val }}</td>
+           <td>
+{% if check.links %}
+## for link in check.links
+             <a href="{{ link.url }}">{{ link.label }}</a>
+## endfor
+{% endif %}
+           </td>
            <td>{{ check.summary }}</td>
          </tr>
 ## endfor
@@ -78,24 +85,39 @@ const std::string detailsTmpl = R"~~~~(
 </html>
 )~~~~";
 
-static void show_checks(httplib::Response &res) {
-  json data;
-  data["checks"] = {};
-  for (const auto &it : checks_list()) {
-    auto sts = std::get<1>(it)->run();
-    const char *val_style = "";
-    if (sts.value != StatusVal::OK) {
-      val_style = "class=\"is-danger\"";
+static void show_checks(const httplib::Request &req, httplib::Response &res) {
+  try {
+    json data;
+    data["checks"] = {};
+    for (const auto &it : checks_list()) {
+      auto sts = std::get<1>(it)->run();
+      const char *val_style = "";
+      if (sts.value != StatusVal::OK) {
+        val_style = "class=\"is-danger\"";
+      }
+
+      json links = {};
+      for (const auto &link : sts.links) {
+        std::string url = link.getUrl(req.remote_addr);
+        if (url.size() > 0) {
+          json entry = {
+              {"label", link.label},
+              {"url", link.getUrl(req.remote_addr)},
+          };
+          links.emplace_back(entry);
+        }
+      }
+      json check = {
+          {"name", std::get<0>(it)}, {"val_style", val_style}, {"val", sts.valueString()},
+          {"summary", sts.summary},  {"links", links},
+      };
+      data["checks"].emplace_back(check);
     }
-    json check = {
-        {"name", std::get<0>(it)},
-        {"val_style", val_style},
-        {"val", sts.valueString()},
-        {"summary", sts.summary},
-    };
-    data["checks"].emplace_back(check);
+    res.set_content(inja::render(indexTmpl, data), "text/html");
+  } catch (const std::exception &ex) {
+    res.status = 500;
+    res.set_content(ex.what(), "text/plain");
   }
-  res.set_content(inja::render(indexTmpl, data), "text/html");
 }
 
 static void show_check(const std::string &name, httplib::Response &res) {
@@ -136,7 +158,7 @@ int httpd_main(int port) {
     return 1;
   }
 
-  svr.Get("/", [](const httplib::Request &, httplib::Response &res) { show_checks(res); });
+  svr.Get("/", [](const httplib::Request &req, httplib::Response &res) { show_checks(req, res); });
 
   svr.Get("/checks/(.*)", [](const httplib::Request &req, httplib::Response &res) { show_check(req.matches[1], res); });
 

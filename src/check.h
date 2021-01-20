@@ -5,6 +5,32 @@
 #include <string>
 #include <vector>
 
+struct Link {
+  Link(const std::string label, const std::string ip, const uint16_t port) : label(label), ip(ip), port(port) {}
+
+  std::string label;
+  std::string ip;
+  uint16_t port;
+
+  std::string getUrl(const std::string request_addr) const {
+    if (ip == "0.0.0.0" || ip == request_addr) {
+      return "http://" + request_addr + ":" + std::to_string(port);
+    }
+
+    if (ip == "127.0.0.1" || ip == "127.0.1.1") {
+      if (request_addr == ip) {
+        return "http://" + ip + ":" + std::to_string(port);
+      }
+
+      // TODO we could probably try and reverse proxy this
+      return "";
+    }
+
+    // Not sure if we can access this link, but return it anyway
+    return "http://" + ip + ":" + std::to_string(port);
+  }
+};
+
 enum class StatusVal {
   OK = 0,
   ERROR,
@@ -14,6 +40,7 @@ enum class StatusVal {
 struct Status {
   std::string summary;
   StatusVal value;
+  std::vector<Link> links;
 
   std::string valueString() {
     if (value == StatusVal::OK) {

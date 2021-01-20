@@ -13,12 +13,14 @@ using json = nlohmann::json;
 
 class compose_service {
  public:
-  compose_service(std::string container_id, std::string name, std::string state, std::string status)
-      : container_id(container_id), name(name), state(state), status(status) {}
+  compose_service(std::string container_id, std::string name, std::string state, std::string status,
+                  std::vector<Link> links)
+      : container_id(container_id), name(name), state(state), status(status), links(links) {}
   std::string container_id;
   std::string name;
   std::string state;
   std::string status;
+  std::vector<Link> links;
 };
 
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -68,11 +70,15 @@ static std::vector<compose_service> compose_services(std::string compose_proj) {
   auto j = json::parse(readBuffer);
   for (auto &el : j.items()) {
     auto ctr = el.value();
-    /* TODO
-     * "Ports":[{"IP":"0.0.0.0","PrivatePort":8000,"PublicPort":80,"Type":"tcp"}]
-     */
-    services.emplace_back(ctr["Id"], ctr["Labels"]["com.docker.compose.service"].get<std::string>(),
-                          ctr["State"].get<std::string>(), ctr["Status"].get<std::string>());
+    std::string svc = ctr["Labels"]["com.docker.compose.service"].get<std::string>();
+
+    std::vector<Link> links;
+    for (const auto &port : ctr["Ports"]) {
+      std::string lbl = compose_proj + "-" + svc;
+      links.emplace_back(lbl, port["IP"].get<std::string>(), port["PublicPort"].get<uint16_t>());
+    }
+
+    services.emplace_back(ctr["Id"], svc, ctr["State"].get<std::string>(), ctr["Status"].get<std::string>(), links);
   }
 
   return services;
@@ -163,6 +169,8 @@ Status ComposeCheck::run() const {
       if (svc.state != "running") {
         sts.value = StatusVal::ERROR;
       }
+
+      sts.links.insert(sts.links.end(), svc.links.begin(), svc.links.end());
     }
   } catch (const std::exception &ex) {
     sts.value = StatusVal::ERROR;
