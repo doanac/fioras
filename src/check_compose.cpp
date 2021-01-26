@@ -75,7 +75,9 @@ static std::vector<compose_service> compose_services(std::string compose_proj) {
     std::vector<Link> links;
     for (const auto &port : ctr["Ports"]) {
       std::string lbl = compose_proj + "-" + svc;
-      links.emplace_back(lbl, port["IP"].get<std::string>(), port["PublicPort"].get<uint16_t>());
+      if(port.contains("PublicPort")) {
+        links.emplace_back(lbl, port["IP"].get<std::string>(), port["PublicPort"].get<uint16_t>());
+      }
     }
 
     services.emplace_back(ctr["Id"], svc, ctr["State"].get<std::string>(), ctr["Status"].get<std::string>(), links);
