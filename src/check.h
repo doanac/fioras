@@ -12,13 +12,13 @@ struct Link {
   std::string ip;
   uint16_t port;
 
-  std::string getUrl(const std::string request_addr) const {
-    if (ip == "0.0.0.0" || ip == request_addr) {
-      return "http://" + request_addr + ":" + std::to_string(port);
+  std::string getUrl(const std::string host_addr) const {
+    if (ip == "0.0.0.0" || ip == host_addr) {
+      return "http://" + host_addr + ":" + std::to_string(port);
     }
 
     if (ip == "127.0.0.1" || ip == "127.0.1.1") {
-      if (request_addr == ip) {
+      if (host_addr == ip) {
         return "http://" + ip + ":" + std::to_string(port);
       }
 

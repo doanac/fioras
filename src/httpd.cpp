@@ -86,6 +86,11 @@ const std::string detailsTmpl = R"~~~~(
 )~~~~";
 
 static void show_checks(const httplib::Request &req, httplib::Response &res) {
+  std::string host = req.get_header_value("Host");
+  auto idx = host.rfind(':');
+  if (idx != std::string::npos) {
+    host = host.substr(0, idx);
+  }
   try {
     json data;
     data["checks"] = {};
@@ -98,11 +103,11 @@ static void show_checks(const httplib::Request &req, httplib::Response &res) {
 
       json links = {};
       for (const auto &link : sts.links) {
-        std::string url = link.getUrl(req.remote_addr);
+        std::string url = link.getUrl(host);
         if (url.size() > 0) {
           json entry = {
               {"label", link.label},
-              {"url", link.getUrl(req.remote_addr)},
+              {"url", url},
           };
           links.emplace_back(entry);
         }
