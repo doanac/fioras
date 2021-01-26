@@ -6,6 +6,7 @@ std::vector<std::tuple<std::string, std::unique_ptr<CheckInterface>>> checks_lis
   std::vector<std::tuple<std::string, std::unique_ptr<CheckInterface>>> checks;
   checks.emplace_back("docker", std::make_unique<SystemDCheck>("docker.service"));
   checks.emplace_back("aktualizr-lite", std::make_unique<AkliteCheck>());
+  checks.emplace_back("fioconfig", std::make_unique<SystemDCheck>("fioconfig.service"));
 
   boost::filesystem::path p("/var/sota/compose-apps");
   for (const auto &it : boost::filesystem::directory_iterator(p)) {
