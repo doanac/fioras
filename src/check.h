@@ -83,4 +83,10 @@ class ComposeCheck : public CheckInterface {
   std::string svc_;
 };
 
+class AkliteCheck : public CheckInterface {
+ public:
+  std::string getLog() const override;
+  Status run() const override;
+};
+
 std::vector<std::tuple<std::string, std::unique_ptr<CheckInterface>>> checks_list();
