@@ -5,6 +5,14 @@
 #include <string>
 #include <vector>
 
+struct SysInfo {
+  std::string target_name;
+  std::string target_version;
+  std::string device_uuid;
+};
+
+SysInfo GetSysInfo();
+
 struct Link {
   Link(const std::string label, const std::string ip, const uint16_t port) : label(label), ip(ip), port(port) {}
 

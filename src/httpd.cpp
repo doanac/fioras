@@ -21,6 +21,19 @@ const std::string indexTmpl = R"~~~~(
   <section class="section">
     <div class="container">
       <h1 class="title">
+        Status
+      </h1>
+      <table class="table">
+        <tr>
+          <th>UUID</th>
+          <td>{{ uuid }}</span></td>
+        </tr>
+        <tr>
+          <th>Version</th>
+          <td>{{ target_version }} / {{ target_name }}</span></td>
+        </tr>
+      </table>
+      <h1 class="title">
         Checks Overview
       </h1>
       <p class="subtitle">
@@ -93,6 +106,12 @@ static void show_checks(const httplib::Request &req, httplib::Response &res) {
   }
   try {
     json data;
+
+    auto info = GetSysInfo();
+    data["uuid"] = info.device_uuid;
+    data["target_name"] = info.target_name;
+    data["target_version"] = info.target_version;
+
     data["checks"] = {};
     for (const auto &it : checks_list()) {
       auto sts = std::get<1>(it)->run();

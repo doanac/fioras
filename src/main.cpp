@@ -38,6 +38,14 @@ static int checks_main(const bpo::variables_map& variables_map) {
   return 0;
 }
 
+static int sysinfo_main(const bpo::variables_map& variables_map) {
+  auto info = GetSysInfo();
+  std::cout << "UUID:    " << info.device_uuid << "\n";
+  std::cout << "Version: " << info.target_version << "\n";
+  std::cout << "Target:  " << info.target_name << "\n";
+  return 0;
+}
+
 static int server_main(const bpo::variables_map& variables_map) {
   int port = variables_map["port"].as<int>();
   return httpd_main(port);
@@ -46,6 +54,7 @@ static int server_main(const bpo::variables_map& variables_map) {
 static const std::unordered_map<std::string, int (*)(const bpo::variables_map&)> commands = {
     {"version", version_main},
     {"run-checks", checks_main},
+    {"sys-info", sysinfo_main},
     {"run-server", server_main},
 };
 
