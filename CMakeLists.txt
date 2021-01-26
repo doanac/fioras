@@ -14,7 +14,7 @@ add_definitions('-Wall')
 
 # find all required libraries
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(Boost COMPONENTS program_options filesystem REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(CURL REQUIRED)
 pkg_search_module(GLIB REQUIRED glib-2.0)
